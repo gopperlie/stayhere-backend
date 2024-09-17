@@ -1,4 +1,4 @@
-# Lin properties
+# stayhere
 
 Allows users to check for availability of hostel
 
