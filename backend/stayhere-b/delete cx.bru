@@ -1,0 +1,15 @@
+meta {
+  name: delete cx
+  type: http
+  seq: 3
+}
+
+delete {
+  url: http://localhost:3000/api/customers/remove/:id
+  body: json
+  auth: none
+}
+
+params:path {
+  id: 2
+}
