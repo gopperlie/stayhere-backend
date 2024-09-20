@@ -1,10 +1,10 @@
-const express = require("express");
-const pool = require("../persistence/db");
+import * as db from "../persistence/db.js";
+import express from "express";
 const router = express.Router();
 
 router.get("/", async (req, res) => {
   try {
-    const result = await pool.query("SELECT * FROM properties");
+    const result = await db.query("SELECT * FROM properties");
     res.json(result.rows); // Send the fetched rows as JSON
   } catch (err) {
     console.error(err.message);
@@ -12,4 +12,4 @@ router.get("/", async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

@@ -2,10 +2,11 @@
   "name": "linprop",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js",
-    "dev": "nodemon server.js"
+    "start": "NODE_ENV=dev DEBUG=express:* server.js",
+    "dev": "DEBUG=app:server,app:properties,app:customers,persistence:db nodemon server.js"
   },
   "author": "",
   "license": "ISC",

@@ -1,10 +1,12 @@
-const express = require("express");
-const cors = require("cors");
-const pool = require("./persistence/db");
-const debug = require("debug")("app:server");
-const getGreeting = require("./routes/getGreeting");
-const propertyRouter = require("./controllers/PropertiesController");
-const customerRouter = require("./controllers/CustomersController");
+import express from "express";
+import cors from "cors";
+import debugModule from "debug";
+import propertyRouter from "./controllers/PropertiesController.js";
+import customerRouter from "./controllers/CustomersController.js";
+import greetingHandler from "./routes/getGreeting.js";
+
+const debug = debugModule("app:server");
+
 // const bodyParser = require("body-parser");
 
 const app = express();
@@ -27,8 +29,9 @@ app.get("/", (request, response) => {
   response.json({ info: "Node.js, Express, and Postgres API" });
 });
 
-app.get("/api/greeting", getGreeting);
+app.get("/api/greeting", greetingHandler);
 
 app.listen(port, () => {
-  debug(`stayhere listening on port ${port}`);
+  debug(`stayhere listening on ${port}`);
+  // console.log(`stayhere listening on port ${port}`);
 });

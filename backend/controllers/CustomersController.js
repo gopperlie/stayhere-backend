@@ -1,7 +1,10 @@
-const express = require("express");
-const pool = require("../persistence/db");
-const router = express.Router();
-const debug = require("debug")("controller:customers");
+import express from "express";
+import * as db from "../persistence/db.js";
+import { Router } from "express";
+import debugModule from "debug";
+
+const router = Router();
+const debug = debugModule("app:customers");
 
 // POST route to add new data
 router.post("/add", async (req, res) => {
@@ -31,7 +34,7 @@ router.post("/add", async (req, res) => {
       date_of_birth,
       gender,
     ];
-    const result = await pool.query(query, values);
+    const result = await db.query(query, values);
 
     res.status(201).json({
       message: "Customer added successfully",
@@ -53,7 +56,7 @@ router.delete("/remove/:id", async (req, res) => {
   try {
     // First, check if the customer exists
     const checkQuery = "SELECT * FROM customers WHERE customer_id = $1";
-    const checkResult = await pool.query(checkQuery, [cxid]);
+    const checkResult = await db.query(checkQuery, [cxid]);
 
     if (checkResult.rowCount === 0) {
       // If no rows were found, the customer does not exist
@@ -62,7 +65,7 @@ router.delete("/remove/:id", async (req, res) => {
 
     // Customer exists, proceed to delete
     const deleteQuery = "DELETE FROM customers WHERE customer_id = $1";
-    await pool.query(deleteQuery, [cxid]);
+    await db.query(deleteQuery, [cxid]);
 
     res.status(200).send(`Customer deleted with ID: ${cxid}`);
   } catch (error) {
@@ -81,7 +84,7 @@ router.put("/update/:id", async (req, res) => {
 
   try {
     const checkQuery = "SELECT * FROM customers WHERE customer_id = $1";
-    const checkResult = await pool.query(checkQuery, [cxid]);
+    const checkResult = await db.query(checkQuery, [cxid]);
 
     if (checkResult.rowCount === 0) {
       // If no rows were found, the customer does not exist
@@ -90,7 +93,7 @@ router.put("/update/:id", async (req, res) => {
     const { gender, email } = req.body;
     const updateQuery =
       "UPDATE customers SET gender = $1, email = $2 WHERE customer_id = $3 RETURNING *";
-    const result = await pool.query(updateQuery, [gender, email, cxid]);
+    const result = await db.query(updateQuery, [gender, email, cxid]);
     res.status(200).json({
       message: `Customer ${cxid} updated successfully`,
       customer: result.rows[0],
@@ -101,4 +104,4 @@ router.put("/update/:id", async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;
