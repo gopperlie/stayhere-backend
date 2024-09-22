@@ -2,6 +2,7 @@ import express from "express";
 import * as db from "../persistence/db.js";
 import { Router } from "express";
 import debugModule from "debug";
+import verifyToken from "../middleware/verifyToken.js";
 
 const router = Router();
 const debug = debugModule("app:customers");
@@ -46,7 +47,7 @@ router.post("/add", async (req, res) => {
   }
 });
 
-router.delete("/remove/:id", async (req, res) => {
+router.delete("/remove/:id", verifyToken, async (req, res) => {
   const cxid = parseInt(req.params.id);
 
   if (isNaN(cxid)) {
@@ -75,7 +76,7 @@ router.delete("/remove/:id", async (req, res) => {
 });
 
 //nned to handle instances where certain fields are left out, no change should be made
-router.put("/update/:id", async (req, res) => {
+router.put("/update/:id", verifyToken, async (req, res) => {
   const cxid = parseInt(req.params.id);
 
   if (isNaN(cxid)) {

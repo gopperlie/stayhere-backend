@@ -1,0 +1,28 @@
+meta {
+  name: modify reservations
+  type: http
+  seq: 12
+}
+
+put {
+  url: http://localhost:3000/api/bookings/modify/:id
+  body: json
+  auth: bearer
+}
+
+params:path {
+  id: 1
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InNhZG1hbiIsImFkbWluX2lkIjo1LCJpYXQiOjE3MjY5ODc3ODYsImV4cCI6MTcyNzE2MDU4Nn0.HWaMDKy9-wcIdCplz9LCQJyCMh_nGkaNDfawyYnZVNk
+}
+
+body:json {
+  {
+    "roomId": "7",
+    "customerId":"5",
+    "startDate":"2024-01-12",
+    "endDate":"2024-05-14"
+  }
+}
