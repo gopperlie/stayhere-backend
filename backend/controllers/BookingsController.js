@@ -4,7 +4,7 @@ const router = express.Router();
 
 router.get("/", async (req, res) => {
   try {
-    const result = await db.query("SELECT * FROM reservations");
+    const result = await db.query("SELECT * FROM bookings");
     res.json(result.rows); // Send the fetched rows as JSON
   } catch (err) {
     console.error(err.message);
@@ -22,7 +22,7 @@ router.post("/check-availability", async (req, res) => {
       FROM rooms
       WHERE room_id NOT IN (
         SELECT room_id 
-        FROM reservations
+        FROM bookings
         WHERE (start_date, end_date) OVERLAPS ($1, $2)
       )`,
       [startDate, endDate]
@@ -43,12 +43,13 @@ router.post("/check-availability", async (req, res) => {
 router.post("/new", async (req, res) => {
   const { roomId, customerId, startDate, endDate } = req.body;
 
+  //always use YYYY-MM-DD for dates to avoid ambiguity
   try {
     // Ensure the room is still available before booking
     const result = await db.query(
       `
       SELECT room_id 
-      FROM reservations 
+      FROM bookings 
       WHERE room_id = $1 
       AND (start_date, end_date) OVERLAPS ($2, $3)`,
       [roomId, startDate, endDate]
@@ -57,19 +58,19 @@ router.post("/new", async (req, res) => {
     if (result.rows.length === 0) {
       await db.query(
         `
-        INSERT INTO reservations (room_id, customer_id, start_date, end_date)
+        INSERT INTO bookings (room_id, customer_id, start_date, end_date)
         VALUES ($1, $2, $3, $4)`,
         [roomId, customerId, startDate, endDate]
       );
 
-      res.status(200).json({ message: "Room reserved successfully!" });
+      res.status(200).json({ message: "Room booked successfully!" });
     } else {
       res
         .status(400)
-        .json({ message: "Room is already reserved for these dates." });
+        .json({ message: "Room is already booked for these dates." });
     }
   } catch (error) {
-    res.status(500).json({ message: "Error reserving the room", error });
+    res.status(500).json({ message: "Error booking the room", error });
   }
 });
 
