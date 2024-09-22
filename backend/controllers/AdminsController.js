@@ -9,6 +9,7 @@ const router = Router();
 const debug = debugModule("app:admins");
 const SALT_LENGTH = 12;
 
+//need to consider the fact that only authorised users are allowed to help other people register
 router.post("/admin-signup", async (req, res) => {
   const { username, password } = req.body;
 

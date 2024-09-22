@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "NODE_ENV=dev DEBUG=express:* server.js",
-    "dev": "DEBUG=app:server,app:properties,app:admins,persistence:db nodemon server.js"
+    "dev": "DEBUG=app:server,app:bookings,app:admins,persistence:db nodemon server.js"
   },
   "author": "",
   "license": "ISC",

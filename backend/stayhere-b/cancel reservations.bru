@@ -1,0 +1,25 @@
+meta {
+  name: cancel reservations
+  type: http
+  seq: 13
+}
+
+put {
+  url: http://localhost:3000/api/bookings/cancel/:id
+  body: json
+  auth: bearer
+}
+
+params:path {
+  id: 1
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InNhZG1hbiIsImFkbWluX2lkIjo1LCJpYXQiOjE3MjY5ODc3ODYsImV4cCI6MTcyNzE2MDU4Nn0.HWaMDKy9-wcIdCplz9LCQJyCMh_nGkaNDfawyYnZVNk
+}
+
+body:json {
+  {
+  "status": "active"
+  }
+}
