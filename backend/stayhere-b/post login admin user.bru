@@ -1,0 +1,19 @@
+meta {
+  name: post login admin user
+  type: http
+  seq: 11
+}
+
+post {
+  url: http://localhost:3000/api/admins/admin-login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "username": "sadman",
+    "password": "123"
+    
+    }
+}

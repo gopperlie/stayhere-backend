@@ -1,0 +1,19 @@
+meta {
+  name: post new admin user
+  type: http
+  seq: 10
+}
+
+post {
+  url: http://localhost:3000/api/admins/admin-signup
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "username": "batman",
+    "password": "123",
+    "email": "superuser@fresh.com"
+    }
+}
