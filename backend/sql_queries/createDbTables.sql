@@ -16,3 +16,20 @@ ALTER TABLE customers
 ADD CONSTRAINT email_format_check
 CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$');
 
+ALTER TABLE bookings
+ADD COLUMN last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+
+-- Create a function to update the 'last_modified' column
+CREATE OR REPLACE FUNCTION update_last_modified_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.last_modified = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create a trigger that fires on updates to the table
+CREATE TRIGGER update_last_modified_trigger
+BEFORE UPDATE ON bookings
+FOR EACH ROW
+EXECUTE FUNCTION update_last_modified_column();

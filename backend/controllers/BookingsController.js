@@ -105,13 +105,18 @@ router.put(
   checkAvailability,
   async (req, res) => {
     const bookingId = parseInt(req.params.id);
-
     if (isNaN(bookingId)) {
       return res.status(400).json({ error: "Invalid booking ID" });
     }
+    const checkQuery = "SELECT * FROM bookings WHERE booking_id = $1";
+    const checkResult = await db.query(checkQuery, [bookingId]);
 
     try {
       const { roomId, customerId, startDate, endDate } = req.body;
+      if (!roomId || !customerId || !startDate || !endDate) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
       const originalBooking = checkResult.rows[0];
 
       // Normalize both incoming and stored dates to Singapore timezone
