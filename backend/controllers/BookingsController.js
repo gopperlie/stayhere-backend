@@ -8,11 +8,34 @@ const router = express.Router();
 const debug = debugModule("app:bookings");
 
 router.get("/", verifyToken, async (req, res) => {
+  let client;
   try {
-    const result = await db.query("SELECT * FROM bookings");
+    client = await db.getClient();
+    const result = await client.query("SELECT * FROM bookings");
     res.json(result.rows); // Send the fetched rows as JSON
   } catch (err) {
     console.error(err.message);
+    res.status(500).send("Server Error");
+  } finally {
+    if (client) {
+      client.release();
+    }
+  }
+});
+
+//get specific booking
+router.get("/:id", verifyToken, async (req, res) => {
+  const bookingId = parseInt(req.params.id);
+
+  if (isNaN(bookingId)) {
+    return res.status(400).json({ error: "Invalid booking ID" });
+  }
+
+  try {
+    const checkQuery = "SELECT * FROM bookings WHERE booking_id = $1";
+    const result = await db.query(checkQuery, [bookingId]);
+    res.json(result.rows);
+  } catch (err) {
     res.status(500).send("Server Error");
   }
 });

@@ -1,11 +1,11 @@
 meta {
-  name: cancel reservations
+  name: modify booking
   type: http
-  seq: 13
+  seq: 12
 }
 
 put {
-  url: http://localhost:3000/api/bookings/cancel/:id
+  url: http://localhost:3000/api/bookings/modify/:id
   body: json
   auth: bearer
 }
@@ -20,6 +20,9 @@ auth:bearer {
 
 body:json {
   {
-  "status": "active"
+    "roomId": "7",
+    "customerId":"5",
+    "startDate":"2024-01-12",
+    "endDate":"2024-05-14"
   }
 }

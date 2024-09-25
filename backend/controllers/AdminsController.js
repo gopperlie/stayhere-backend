@@ -51,7 +51,7 @@ router.post("/admin-login", async (req, res) => {
     const user = result.rows[0]; // Get the first result row, different from mongodb
 
     if (!user) {
-      return res.status(400).json({ message: "Invalid username or password" });
+      return res.status(400).json({ error: "Invalid username or password" });
     }
 
     const match = await bcrypt.compare(password, user.password_hash);
