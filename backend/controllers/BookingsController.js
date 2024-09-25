@@ -4,6 +4,7 @@ import * as db from "../persistence/db.js";
 import debugModule from "debug";
 import express from "express";
 import getDateInSingapore from "../helperfunctions/getDateWithoutTime.js";
+import checkCancelledRoom from "../middleware/checkCancelledRoom.js";
 const router = express.Router();
 const debug = debugModule("app:bookings");
 
@@ -25,7 +26,7 @@ router.get("/", verifyToken, async (req, res) => {
 
 //get specific booking
 router.get("/:id", verifyToken, async (req, res) => {
-  const bookingId = parseInt(req.params.id);
+  const bookingId = parseInt(req.params.id, 10);
 
   if (isNaN(bookingId)) {
     return res.status(400).json({ error: "Invalid booking ID" });
@@ -34,6 +35,7 @@ router.get("/:id", verifyToken, async (req, res) => {
   try {
     const checkQuery = "SELECT * FROM bookings WHERE booking_id = $1";
     const result = await db.query(checkQuery, [bookingId]);
+    console.log(result.rows);
     res.json(result.rows);
   } catch (err) {
     res.status(500).send("Server Error");
@@ -96,68 +98,64 @@ router.post("/new", checkAvailability, async (req, res) => {
 
 //Modify reservations. Authenticated user can modify rooms, customers, start and/or end dates.
 //consider validating if customer / room exists before posting the query to db
-router.put("/modify/:id", verifyToken, checkAvailability, async (req, res) => {
-  const bookingId = parseInt(req.params.id);
+router.put(
+  "/modify/:id",
+  verifyToken,
+  checkCancelledRoom,
+  checkAvailability,
+  async (req, res) => {
+    const bookingId = parseInt(req.params.id);
 
-  if (isNaN(bookingId)) {
-    return res.status(400).json({ error: "Invalid booking ID" });
-  }
-
-  try {
-    const checkQuery = "SELECT * FROM bookings WHERE booking_id = $1";
-    const checkResult = await db.query(checkQuery, [bookingId]);
-
-    if (
-      checkResult.rowCount === 0 ||
-      checkResult.rows[0].status === "cancelled"
-    ) {
-      // If no rows were found, the booking does not exist
-      return res.status(404).json({ error: "Booking not found" });
+    if (isNaN(bookingId)) {
+      return res.status(400).json({ error: "Invalid booking ID" });
     }
-    const { roomId, customerId, startDate, endDate } = req.body;
-    const originalBooking = checkResult.rows[0];
 
-    // Normalize both incoming and stored dates to Singapore timezone
-    const normalizedStartDate = getDateInSingapore(startDate);
-    const normalizedEndDate = getDateInSingapore(endDate);
-    debug(normalizedStartDate);
+    try {
+      const { roomId, customerId, startDate, endDate } = req.body;
+      const originalBooking = checkResult.rows[0];
 
-    const originalStartDate = getDateInSingapore(originalBooking.start_date);
-    const originalEndDate = getDateInSingapore(originalBooking.end_date);
-    debug(originalStartDate);
-    // Compare only the date parts (ignoring time)
-    if (
-      originalStartDate === normalizedStartDate &&
-      originalEndDate === normalizedEndDate
-    ) {
-      return res.status(400).json({
-        error: "There were no changes to the start and end dates.",
+      // Normalize both incoming and stored dates to Singapore timezone
+      const normalizedStartDate = getDateInSingapore(startDate);
+      const normalizedEndDate = getDateInSingapore(endDate);
+      debug(normalizedStartDate);
+
+      const originalStartDate = getDateInSingapore(originalBooking.start_date);
+      const originalEndDate = getDateInSingapore(originalBooking.end_date);
+      debug(originalStartDate);
+      // Compare only the date parts (ignoring time)
+      if (
+        originalStartDate === normalizedStartDate &&
+        originalEndDate === normalizedEndDate
+      ) {
+        return res.status(400).json({
+          error: "There were no changes to the start and end dates.",
+        });
+      }
+
+      const updateQuery =
+        "UPDATE bookings SET room_id = $2, customer_id = $3, start_date = $4, end_date = $5 WHERE booking_id = $1 RETURNING *";
+
+      // Use the correct variables here
+      const result = await db.query(updateQuery, [
+        bookingId,
+        roomId,
+        customerId,
+        startDate,
+        endDate,
+      ]);
+      res.status(200).json({
+        message: `Booking ${bookingId} updated successfully`,
+        booking: result.rows[0], // Return the updated booking details
       });
+    } catch (error) {
+      console.error("Unable to update booking:", error);
+      res.status(500).json({ error: "Database error" });
     }
-
-    const updateQuery =
-      "UPDATE bookings SET room_id = $2, customer_id = $3, start_date = $4, end_date = $5 WHERE booking_id = $1 RETURNING *";
-
-    // Use the correct variables here
-    const result = await db.query(updateQuery, [
-      bookingId,
-      roomId,
-      customerId,
-      startDate,
-      endDate,
-    ]);
-    res.status(200).json({
-      message: `Booking ${bookingId} updated successfully`,
-      booking: result.rows[0], // Return the updated booking details
-    });
-  } catch (error) {
-    console.error("Unable to update booking:", error);
-    res.status(500).json({ error: "Database error" });
   }
-});
+);
 
 //Route for cancelling a booking, allow for future flexibility of other statuses
-router.put("/cancel/:id", verifyToken, async (req, res) => {
+router.put("/cancel/:id", verifyToken, checkCancelledRoom, async (req, res) => {
   const bookingId = parseInt(req.params.id);
 
   if (isNaN(bookingId)) {
@@ -165,19 +163,6 @@ router.put("/cancel/:id", verifyToken, async (req, res) => {
   }
 
   try {
-    const checkQuery = "SELECT * FROM bookings WHERE booking_id = $1";
-    const checkResult = await db.query(checkQuery, [bookingId]);
-
-    if (checkResult.rowCount === 0) {
-      // If no rows were found, the booking does not exist
-      return res.status(404).json({ error: "Booking not found" });
-    }
-    if (checkResult.rows[0].status === "cancelled") {
-      return res.status(400).json({
-        error:
-          "The reservation has already been cancelled. Please proceed to make a new one if needed.",
-      });
-    }
     const { status = "cancelled" } = req.body;
 
     const updateQuery =
