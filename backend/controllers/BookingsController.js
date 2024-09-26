@@ -48,7 +48,7 @@ router.post("/check-available-rooms", async (req, res) => {
   try {
     const result = await db.query(
       `
-      SELECT room_id
+      SELECT *
       FROM rooms
       WHERE room_id NOT IN (
         SELECT room_id 

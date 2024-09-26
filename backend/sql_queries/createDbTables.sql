@@ -33,3 +33,7 @@ CREATE TRIGGER update_last_modified_trigger
 BEFORE UPDATE ON bookings
 FOR EACH ROW
 EXECUTE FUNCTION update_last_modified_column();
+
+ALTER TABLE bookings
+ADD CONSTRAINT end_date_after_start_date
+CHECK (end_date > start_date);
