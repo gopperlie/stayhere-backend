@@ -154,7 +154,7 @@ router.post("/signup", async (req, res) => {
   }
 });
 
-router.get("/getcustomerid", verifyToken, async (req, res) => {
+router.post("/getcustomerid", verifyToken, async (req, res) => {
   const email = req.body.email;
   try {
     const checkQuery = "SELECT customer_id FROM customers WHERE email = $1";
