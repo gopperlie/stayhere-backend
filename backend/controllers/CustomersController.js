@@ -154,4 +154,56 @@ router.post("/signup", async (req, res) => {
   }
 });
 
+router.get("/getcustomerid", verifyToken, async (req, res) => {
+  const email = req.body.email;
+  try {
+    const checkQuery = "SELECT customer_id FROM customers WHERE email = $1";
+    const result = await db.query(checkQuery, [email]);
+    // Check if a row was returned
+    if (result.rows.length > 0) {
+      const customerId = result.rows[0].customer_id;
+      res.json({ customer_id: customerId });
+    } else {
+      res.status(404).json({ message: "Customer not found" });
+    }
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server Error");
+  }
+});
+
+router.post("/cxlogin", async (req, res) => {
+  const { username, password } = req.body;
+
+  try {
+    const result = await db.query(
+      `SELECT username, password_hash, user_id, role FROM users WHERE username = $1`,
+      [username]
+    );
+
+    const user = result.rows[0]; // Get the first result row, different from mongodb
+
+    if (!user) {
+      return res.status(400).json({ error: "Invalid username or password" });
+    }
+
+    const match = await bcrypt.compare(password, user.password_hash);
+
+    if (match) {
+      const token = jwt.sign(
+        { username: user.username, user_id: user.user_id, role: user.role }, // Payload
+        process.env.JWT_SECRET,
+        { expiresIn: "48h" }
+      );
+
+      return res.status(200).json({ token });
+    } else {
+      return res.status(400).json({ message: "Invalid username or password" });
+    }
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({ message: "Server error", error });
+  }
+});
+
 export default router;

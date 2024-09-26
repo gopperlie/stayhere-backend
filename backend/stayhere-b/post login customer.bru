@@ -1,0 +1,19 @@
+meta {
+  name: post login customer
+  type: http
+  seq: 17
+}
+
+post {
+  url: http://localhost:3000/api/customers/cxlogin
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "username": "brendating@berating.com",
+    "password": "123"
+    
+    }
+}

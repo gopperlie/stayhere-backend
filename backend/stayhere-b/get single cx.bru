@@ -1,0 +1,21 @@
+meta {
+  name: get single cx
+  type: http
+  seq: 16
+}
+
+get {
+  url: http://localhost:3000/api/customers/getcustomerid
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InNhZG1hbiIsInVzZXJfaWQiOjUsInJvbGUiOiJhZG1pbiIsImlhdCI6MTcyNzM2NDMxNCwiZXhwIjoxNzI3NTM3MTE0fQ.GPZckQIwTKfB9XMjmW5Q-chzdJ1rOBrd7ISkXppRaKo
+}
+
+body:json {
+  {
+    "email": "RMCadams@hmail.com"
+  }
+}
