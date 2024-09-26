@@ -3,9 +3,12 @@ import * as db from "../persistence/db.js";
 import { Router } from "express";
 import debugModule from "debug";
 import verifyToken from "../middleware/verifyToken.js";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 const router = Router();
 const debug = debugModule("app:customers");
+const SALT_LENGTH = 12;
 
 // POST route to add new data
 router.post("/add", async (req, res) => {
@@ -102,6 +105,52 @@ router.put("/update/:id", verifyToken, async (req, res) => {
   } catch (error) {
     console.error("Unable to update customer:", error);
     res.status(500).json({ error: "Database error" });
+  }
+});
+
+router.post("/signup", async (req, res) => {
+  const { email, password } = req.body;
+  const role = "customer";
+  const client = await db.getClient();
+  try {
+    const result = await client.query(
+      `SELECT username FROM users WHERE username = $1`,
+      [email]
+    ); //using email as username
+
+    if (result.rows.length > 0) {
+      return res.status(400).json({ message: "Username already taken." });
+    }
+
+    //hashing pw
+    const hashedPassword = await bcrypt.hash(password, SALT_LENGTH);
+
+    // insert new admin
+    await client.query(
+      `INSERT INTO users (username, password_hash, role) VALUES ($1, $2, $3)`,
+      [email, hashedPassword, role]
+    );
+
+    const userResult = await client.query(
+      `SELECT user_id FROM users WHERE username = $1`,
+      [email]
+    );
+
+    const user = userResult.rows[0];
+
+    const token = jwt.sign(
+      { username: email, user_id: user.user_id, role: role },
+      process.env.JWT_SECRET,
+      { expiresIn: "24h" }
+    );
+    res
+      .status(201)
+      .json({ user: { user_id: user.user_id, username: email, role }, token });
+  } catch (error) {
+    console.error("Error during customer signup:", error);
+    res.status(500).json({ message: "Error creating customer user", error });
+  } finally {
+    client.release();
   }
 });
 

@@ -29,7 +29,7 @@ router.post("/admin-signup", async (req, res) => {
 
     // insert new admin
     await db.query(
-      `INSERT INTO users (username, password_hash, role) VALUES ($1, $2, #3)`,
+      `INSERT INTO users (username, password_hash, role) VALUES ($1, $2, $3)`,
       [username, hashedPassword, role]
     );
     //create a separate route in frontend that brings user to log in, where JWT will be generated separately.
@@ -45,7 +45,7 @@ router.post("/admin-login", async (req, res) => {
 
   try {
     const result = await db.query(
-      `SELECT username, password_hash, user_id, role FROM admin_users WHERE username = $1`,
+      `SELECT username, password_hash, user_id, role FROM users WHERE username = $1`,
       [username]
     );
 
@@ -59,7 +59,7 @@ router.post("/admin-login", async (req, res) => {
 
     if (match) {
       const token = jwt.sign(
-        { username: user.username, admin_id: user.admin_id, role: user.role }, // Payload
+        { username: user.username, user_id: user.user_id, role: user.role }, // Payload
         process.env.JWT_SECRET,
         { expiresIn: "48h" }
       );
