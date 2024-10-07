@@ -37,3 +37,24 @@ EXECUTE FUNCTION update_last_modified_column();
 ALTER TABLE bookings
 ADD CONSTRAINT end_date_after_start_date
 CHECK (end_date > start_date);
+
+CREATE TABLE bookings (
+  booking_id SERIAL PRIMARY KEY,
+  room_id INT REFERENCES rooms(room_id),
+  customer_id INT REFERENCES customers(customer_id),
+  start_date DATE NOT NULL,
+  end_date DATE NOT NULL
+);
+
+-- Create a query that returns the count of room types, to book rooms
+
+SELECT r.room_type, r.price_per_night, COUNT(*) AS available_rooms
+FROM rooms r
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM bookings b
+    WHERE r.room_id = b.room_id
+    AND (b.start_date, b.end_date) OVERLAPS ('2024-11-01', '2024-11-03')
+    AND b.status != 'cancelled'
+)
+GROUP BY r.room_type, r.price_per_night;

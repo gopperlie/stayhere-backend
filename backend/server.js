@@ -16,6 +16,7 @@ const debug = debugModule("app:server");
 const app = express();
 const port = process.env.PORT || 3000;
 
+//supposed to pass parameters to cors and state which frontend URL
 app.use(cors());
 app.use(morgan("dev"));
 app.use(express.json());
